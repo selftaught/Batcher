@@ -6,6 +6,7 @@ use feature 'say';
 
 use Data::Dumper;
 use Getopt::Long;
+use POSIX qw(ceil);
 
 sub new {
     my $self = shift;
@@ -51,6 +52,7 @@ sub _fork {
     my ($self, $pages) = @_;
     for my $page (@{$pages}) {
         my $next_page = $self->page_next($page);
+        die "Return value of page_next($page) must be an array ref!" unless ref $next_page eq 'ARRAY';
         for my $result (@{$next_page}) {
             $self->process_result($result);
         }
@@ -58,9 +60,8 @@ sub _fork {
 }
 
 sub log {
-    my ($self, $msg, $stream) = @_;
-    $stream ||= STDOUT;
-    say $stream $msg;
+    my ($self, $msg) = @_;
+    say $msg;
 }
 
 sub page_count { die "Derived package must implement sub page_count!" }
@@ -72,23 +73,22 @@ sub main {
     my $pages = $self->page_count;
     my $forks = $self->fork_count;
     my @pages = (0 .. $pages - 1);
+    my $size  = $self->page_size;
+    my $pages_per_fork = ceil($pages / $forks);
 
-    print Dumper $self;
-
-    my $per_child = $pages / $forks;
-
-    $self->log("Spawning $forks forks to process $per_child pages each");
+    $self->log("Creating $forks forks for $pages_per_fork pages ($size results per page)");
 
     my (@procs, @page_groups);
 
-    push @page_groups, [splice @pages, 0, $per_child] while @pages;
+    push @page_groups, [splice @pages, 0, $pages_per_fork] while @pages;
 
-    for my $i (0 .. $forks) {
+    for my $i (0 .. $forks - 1) {
         my $pid = fork // do {
             warn "Fork failed!: $!";
             next;
         };
         if ($pid == 0) {
+            exit if $i > $forks;
             $self->_fork($page_groups[$i]);
             exit;
         }
