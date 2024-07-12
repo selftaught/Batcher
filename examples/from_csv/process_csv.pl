@@ -5,22 +5,20 @@ use warnings;
 use feature 'say';
 
 use Data::Dumper;
+use POSIX qw(ceil);
 use FindBin qw($Bin);
 use lib qq{$Bin/../../lib};
 
-use parent 'MotherForker';
+use parent 'Batcher';
 
 
 sub option_params {
     my $self = shift;
     my $parent_opts = $self->SUPER::option_params;
-    return {
-        %$parent_opts,
-        'csvfile|f=s' => undef,
-    }
+    return {%$parent_opts, 'file|f=s' => undef};
 }
 
-sub csv_file {shift->options->{'csvfile'}}
+sub csv_file {shift->opts->{'file'}}
 
 sub csv_read {
     my $self = shift;
@@ -42,8 +40,7 @@ sub csv_read {
 sub page_count {
     my $self = shift;
     my ($header, @lines) = $self->csv_read;
-    my $page_count = int(scalar @lines / $self->page_size);
-    print Dumper $page_count;
+    my $page_count = ceil(scalar @lines / $self->page_size);
     return $page_count;
 }
 
@@ -59,7 +56,8 @@ sub page_size {2}
 
 sub process_result {
     my ($self, $result) = @_;
-    print Dumper "result: $result";
+    print Dumper "($$) result: $result";
+    # Do something with the result ...
 }
 
 __PACKAGE__->new->main;

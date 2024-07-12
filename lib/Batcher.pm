@@ -1,4 +1,4 @@
-package MotherForker;
+package Batcher;
 
 use strict;
 use warnings;
@@ -21,12 +21,12 @@ sub _get_opts {
     my $self = shift;
     my %get_opts = ();
     for my $k (keys %{$self->option_params}) {
-        my ($long, $short, $type) = $k =~ /^([^|]+)[|]([^=]+)([=]\w)?$/g;
+        my ($long, $short, $type) = $k =~ /^([^|]+)(?:[|]([^=]+))?([=]\w)?$/g;
         my $val = $self->option_params->{$k};
-        if (!defined $self->options->{$k}) {
+        if (!defined $self->opts->{$k}) {
             $self->{'opts'}->{$k} = $val;
         }
-        $get_opts{$k} = \$self->{opts}->{$long};
+        $get_opts{$k} = \$self->{'opts'}->{$long};
     }
     GetOptions(%get_opts);
 }
@@ -35,18 +35,21 @@ sub option_params {
     return {
         'forks|f=i' => 10,
         'limit|l=i' => 0,
-        'dryrun|d'  => 1,
+        'dryrun|d' => 1,
+        'debug|D' => 0,
     };
 }
 
-sub options {
+sub opts {
     my $self = shift;
     return $self->{'opts'};
 }
 
-sub fork_count {shift->options->{'forks'}}
-sub dryrun {shift->options->{'dry_run'}}
-sub limit {shift->options->{'limit'}}
+sub debug {shift->opts->{'debug'}}
+sub dryrun {shift->opts->{'dry_run'}}
+sub help {shift->opts->{'help'}}
+sub fork_count {shift->opts->{'forks'}}
+sub limit {shift->opts->{'limit'}}
 
 sub _fork {
     my ($self, $pages) = @_;
@@ -82,6 +85,11 @@ sub main {
 
     push @page_groups, [splice @pages, 0, $pages_per_fork] while @pages;
 
+    if ($self->debug) {
+        print Dumper @page_groups;
+        print Dumper @pages;
+    }
+
     for my $i (0 .. $forks - 1) {
         my $pid = fork // do {
             warn "Fork failed!: $!";
@@ -103,4 +111,6 @@ sub main {
     }
 }
 
+
 1;
+
