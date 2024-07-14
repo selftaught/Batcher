@@ -9,7 +9,7 @@ use POSIX qw(ceil);
 
 sub new {
     my $self = shift;
-    my $vals = shift // {opts => {}};
+    my $vals = shift || {};
     my $blsd = bless $vals, $self;
     $blsd;
 }
@@ -30,18 +30,20 @@ sub _fork {
 
 sub log {
     my ($self, $msg) = @_;
-    say $msg;
+    say $msg if $self->log_enabled;
 }
+sub log_enabled {1}
 
 sub _not_implemented_err {
     my ($self, $sub) = @_;
     $sub ||= (caller(1))[3];
-    die "NotImplemented: Derived package must implement sub '$sub'!\n";
+    die "NotImplementedError: Derived package must implement sub '$sub'!\n";
 }
 
-sub page_count { _not_implemented_err() }
-sub page_next { _not_implemented_err() }
-sub page_size { _not_implemented_err() }
+sub page_count {_not_implemented_err}
+sub page_next {_not_implemented_err}
+sub page_size {_not_implemented_err}
+sub process_result {_not_implemented_err}
 
 sub run {
     my $self  = shift;
@@ -56,11 +58,9 @@ sub run {
     my (@procs, @page_groups);
 
     print Dumper "Pages:", @pages if $self->debug;
+    die "Error: got 0 for page count - exiting..\n" if ! $pages;
     push @page_groups, [splice @pages, 0, $pages_per_fork] while @pages;
-
-    if ($self->debug) {
-        print Dumper "Page groups", @page_groups;
-    }
+    print Dumper "Page groups", @page_groups if $self->debug;
 
     for my $i (0 .. $forks - 1) {
         my $pid = fork // do {
@@ -75,11 +75,11 @@ sub run {
         push @procs, $pid;
     }
 
-    $self->log("Starting " . scalar @procs . " child processes");
+    $self->log("Waiting for $forks forks to complete");
 
     for my $pid (@procs) {
         my $child = waitpid $pid, 0;
-        $self->log("$child exited with $?");
+        $self->log("$child completed (code: $?)");
     }
 }
 

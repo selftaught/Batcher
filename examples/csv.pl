@@ -8,7 +8,7 @@ use Data::Dumper;
 use Getopt::Long;
 use POSIX qw(ceil);
 use FindBin qw($Bin);
-use lib qq{$Bin/../../lib};
+use lib qq{$Bin/../lib};
 
 use parent 'Batcher';
 
@@ -28,9 +28,9 @@ sub _get_opts {
     my %get_opts = ();
     for my $k (keys %{$self->option_params}) {
         my ($long, $short, $type) = $k =~ /^([^|]+)(?:[|]([^=]+))?([=]\w)?$/g;
-        my $val = $self->option_params->{$k};
-        if (!defined $self->opts->{$k}) {
-            $self->{'_opts'}->{$k} = $val;
+        my $default_val = $self->option_params->{$k};
+        if (!defined $self->opts->{$long}) {
+            $self->{'_opts'}->{$long} = $default_val;
         }
         $get_opts{$k} = \$self->{'_opts'}->{$long};
     }
@@ -43,19 +43,20 @@ sub option_params {
         'file|f=s' => undef,
         'forks|f=i' => 10,
         'limit|l=i' => 0,
+        'pagesize|p=i' => 2,
     };
 }
 
 sub csv_file {shift->opts->{'file'}}
 sub debug {shift->opts->{'debug'}}
-sub help {shift->opts->{'help'}}
+sub fork_count {shift->opts->{'forks'}}
 sub limit {shift->opts->{'limit'}}
 
 sub csv_read {
     my $self = shift;
-    my $header;
+    my $header = undef;
     my @lines = ();
-    open my $fh, '<', $self->csv_file;
+    open my $fh, '<', $self->csv_file or die "Couldn't open csv file!: $!\n";
     while (my $line = <$fh>) {
         chomp $line;
         if (! defined $header) {
@@ -65,29 +66,33 @@ sub csv_read {
         push @lines, $line;
     }
     close $fh;
-    return ($header, @lines);
+    return @lines;
 }
 
+# required by Batcher
 sub page_count {
     my $self = shift;
-    my ($header, @lines) = $self->csv_read;
+    my @lines = $self->csv_read;
     my $page_count = ceil(scalar @lines / $self->page_size);
     return $page_count;
 }
 
+# required by Batcher
 sub page_next {
     my ($self, $next_idx) = @_;
-    my ($header, @lines) = $self->csv_read;
+    my @lines = $self->csv_read;
     my $page_size = $self->page_size;
     my $page = [splice @lines, $next_idx * $self->page_size, $page_size];
     return $page;
 }
 
-sub page_size {2}
+# required by Batcher
+sub page_size {shift->opts->{'pagesize'}}
 
+# required by Batcher
 sub process_result {
     my ($self, $result) = @_;
-    print Dumper "($$) result: $result";
+    print "($$) result: $result\n";
     # Do something with the result ...
 }
 
