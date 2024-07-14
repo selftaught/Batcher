@@ -13,6 +13,8 @@ Create a new class that subclasses Batcher. The subclass needs to implement a fe
 - `batch_size()` - provides the number of items in a page
 - `process_result($result)` - provides the next result to process
 
+## Performance
+
 ## Contributing
 
 1. Fork the repository
