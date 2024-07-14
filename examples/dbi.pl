@@ -41,7 +41,7 @@ sub option_params {
         'debug|D' => 0,
         'forks|f=i' => 10,
         'limit|l=i' => 0,
-        'pagesize|p=i' => 2,
+        'batchsize|s=i' => 2,
     };
 }
 
@@ -54,9 +54,9 @@ sub db {
 }
 
 # required by Batcher
-sub page_count {
+sub batch_count {
     my $self = shift;
-    # TODO: return number of pages in total result set
+    # TODO: return number of batchs in total result set
     if (!defined $count) {
         # $count = SELECT COUNT(*) FROM table
     }
@@ -64,14 +64,14 @@ sub page_count {
 }
 
 # required by Batcher
-sub page_next {
+sub batch_next {
     my ($self, $next_idx) = @_;
-    # TODO: return the next page of results
+    # TODO: return the next batch of results
 }
 
 # required by Batcher
-sub page_size {
-    # TODO: return the number of results in a page
+sub batch_size {
+    # TODO: return the number of results in a batch
 }
 
 # required by Batcher

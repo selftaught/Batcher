@@ -42,7 +42,7 @@ sub option_params {
         'file|f=s' => undef,
         'forks|f=i' => 10,
         'limit|l=i' => 0,
-        'pagesize|p=i' => 2,
+        'batchsize|s=i' => 2,
     };
 }
 
@@ -69,24 +69,24 @@ sub csv_read {
 }
 
 # required by Batcher
-sub page_count {
+sub batch_count {
     my $self = shift;
     my @lines = $self->csv_read;
-    my $page_count = ceil(scalar @lines / $self->page_size);
-    return $page_count;
+    my $batch_count = ceil(scalar @lines / $self->batch_size);
+    return $batch_count;
 }
 
 # required by Batcher
-sub page_next {
+sub batch_next {
     my ($self, $next_idx) = @_;
     my @lines = $self->csv_read;
-    my $page_size = $self->page_size;
-    my $page = [splice @lines, $next_idx * $self->page_size, $page_size];
-    return $page;
+    my $batch_size = $self->batch_size;
+    my $batch = [splice @lines, $next_idx * $self->batch_size, $batch_size];
+    return $batch;
 }
 
 # required by Batcher
-sub page_size {shift->opts->{'pagesize'}}
+sub batch_size {shift->opts->{'batchsize'}}
 
 # required by Batcher
 sub process_result {

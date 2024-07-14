@@ -21,8 +21,8 @@ sub logs  { 1 }
 sub _fork {
     my ($self, $pages) = @_;
     for my $page (@{$pages}) {
-        my $next_page = $self->page_next($page);
-        die "Return value of page_next() must be an array ref!" unless ref $next_page eq 'ARRAY';
+        my $next_page = $self->batch_next($page);
+        die "Return value of batch_next() must be an array ref!" unless ref $next_page eq 'ARRAY';
         for my $result (@{$next_page}) {
             $self->process_result($result);
         }
@@ -40,27 +40,27 @@ sub _not_implemented_err {
     die "NotImplementedError: Derived package must implement sub '$sub'!\n";
 }
 
-sub page_count {_not_implemented_err}
-sub page_next {_not_implemented_err}
-sub page_size {_not_implemented_err}
+sub batch_count {_not_implemented_err}
+sub batch_next {_not_implemented_err}
+sub batch_size {_not_implemented_err}
 sub process_result {_not_implemented_err}
 
 sub run {
     my $self  = shift;
-    my $pages = $self->page_count;
+    my $pages = $self->batch_count;
     my $forks = $self->forks;
     my @pages = (0 .. $pages - 1);
-    my $size  = $self->page_size;
+    my $size  = $self->batch_size;
     my $pages_per_fork = ceil($pages / $forks);
 
     $self->log("$forks forks, each processing $pages_per_fork page(s) ($size results per page)");
 
-    my (@procs, @page_groups);
+    my (@procs, @batch_groups);
 
     print Dumper "Pages:", @pages if $self->debug;
     die "Error: got 0 for page count - exiting..\n" if ! $pages;
-    push @page_groups, [splice @pages, 0, $pages_per_fork] while @pages;
-    print Dumper "Page groups", @page_groups if $self->debug;
+    push @batch_groups, [splice @pages, 0, $pages_per_fork] while @pages;
+    print Dumper "Page groups", @batch_groups if $self->debug;
 
     for my $i (0 .. $forks - 1) {
         my $pid = fork // do {
@@ -69,7 +69,7 @@ sub run {
         };
         if ($pid == 0) {
             exit if $i > $forks;
-            $self->_fork($page_groups[$i]);
+            $self->_fork($batch_groups[$i]);
             exit;
         }
         push @procs, $pid;
