@@ -5,20 +5,51 @@ use warnings;
 use feature 'say';
 
 use Data::Dumper;
+use Getopt::Long;
 use POSIX qw(ceil);
 use FindBin qw($Bin);
 use lib qq{$Bin/../../lib};
 
 use parent 'Batcher';
 
+sub new {
+    my $self = shift;
+    my $vals = shift // {_opts => {}};
+    my $blsd = bless $vals, $self;
+
+    $blsd->_get_opts;
+    $blsd;
+}
+
+sub opts {shift->{'_opts'}}
+
+sub _get_opts {
+    my $self = shift;
+    my %get_opts = ();
+    for my $k (keys %{$self->option_params}) {
+        my ($long, $short, $type) = $k =~ /^([^|]+)(?:[|]([^=]+))?([=]\w)?$/g;
+        my $val = $self->option_params->{$k};
+        if (!defined $self->opts->{$k}) {
+            $self->{'_opts'}->{$k} = $val;
+        }
+        $get_opts{$k} = \$self->{'_opts'}->{$long};
+    }
+    GetOptions(%get_opts);
+}
 
 sub option_params {
-    my $self = shift;
-    my $parent_opts = $self->SUPER::option_params;
-    return {%$parent_opts, 'file|f=s' => undef};
+    return {
+        'debug|D' => 0,
+        'file|f=s' => undef,
+        'forks|f=i' => 10,
+        'limit|l=i' => 0,
+    };
 }
 
 sub csv_file {shift->opts->{'file'}}
+sub debug {shift->opts->{'debug'}}
+sub help {shift->opts->{'help'}}
+sub limit {shift->opts->{'limit'}}
 
 sub csv_read {
     my $self = shift;
@@ -60,5 +91,5 @@ sub process_result {
     # Do something with the result ...
 }
 
-__PACKAGE__->new->main;
+__PACKAGE__->new->run;
 exit;

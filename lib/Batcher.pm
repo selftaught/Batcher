@@ -5,51 +5,17 @@ use warnings;
 use feature 'say';
 
 use Data::Dumper;
-use Getopt::Long;
 use POSIX qw(ceil);
 
 sub new {
     my $self = shift;
     my $vals = shift // {opts => {}};
     my $blsd = bless $vals, $self;
-
-    $blsd->_get_opts;
     $blsd;
 }
 
-sub _get_opts {
-    my $self = shift;
-    my %get_opts = ();
-    for my $k (keys %{$self->option_params}) {
-        my ($long, $short, $type) = $k =~ /^([^|]+)(?:[|]([^=]+))?([=]\w)?$/g;
-        my $val = $self->option_params->{$k};
-        if (!defined $self->opts->{$k}) {
-            $self->{'opts'}->{$k} = $val;
-        }
-        $get_opts{$k} = \$self->{'opts'}->{$long};
-    }
-    GetOptions(%get_opts);
-}
-
-sub option_params {
-    return {
-        'forks|f=i' => 10,
-        'limit|l=i' => 0,
-        'dryrun|d' => 1,
-        'debug|D' => 0,
-    };
-}
-
-sub opts {
-    my $self = shift;
-    return $self->{'opts'};
-}
-
-sub debug {shift->opts->{'debug'}}
-sub dryrun {shift->opts->{'dry_run'}}
-sub help {shift->opts->{'help'}}
-sub fork_count {shift->opts->{'forks'}}
-sub limit {shift->opts->{'limit'}}
+sub debug { 0 }
+sub fork_count { 4 }
 
 sub _fork {
     my ($self, $pages) = @_;
@@ -67,11 +33,17 @@ sub log {
     say $msg;
 }
 
-sub page_count { die "Derived package must implement sub page_count!" }
-sub page_next { die "Derived package must implement sub page_next!" }
-sub page_size { die "Derived package must implement sub page_size!" }
+sub _not_implemented_err {
+    my ($self, $sub) = @_;
+    $sub ||= (caller(1))[3];
+    die "NotImplemented: Derived package must implement sub '$sub'!\n";
+}
 
-sub main {
+sub page_count { _not_implemented_err() }
+sub page_next { _not_implemented_err() }
+sub page_size { _not_implemented_err() }
+
+sub run {
     my $self  = shift;
     my $pages = $self->page_count;
     my $forks = $self->fork_count;
@@ -79,15 +51,15 @@ sub main {
     my $size  = $self->page_size;
     my $pages_per_fork = ceil($pages / $forks);
 
-    $self->log("Creating $forks forks for $pages_per_fork pages ($size results per page)");
+    $self->log("$forks forks, each processing $pages_per_fork page(s) ($size results per page)");
 
     my (@procs, @page_groups);
 
+    print Dumper "Pages:", @pages if $self->debug;
     push @page_groups, [splice @pages, 0, $pages_per_fork] while @pages;
 
     if ($self->debug) {
-        print Dumper @page_groups;
-        print Dumper @pages;
+        print Dumper "Page groups", @page_groups;
     }
 
     for my $i (0 .. $forks - 1) {
