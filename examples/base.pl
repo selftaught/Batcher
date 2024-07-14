@@ -2,7 +2,6 @@
 
 use strict;
 use warnings;
-use feature 'say';
 
 use Data::Dumper;
 use Getopt::Long;
@@ -47,7 +46,7 @@ sub option_params {
 }
 
 sub debug {shift->opts->{'debug'}}
-sub fork_count {shift->opts->{'forks'}}
+sub forks {shift->opts->{'forks'}}
 sub limit {shift->opts->{'limit'}}
 
 

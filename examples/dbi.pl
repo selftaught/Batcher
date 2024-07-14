@@ -39,60 +39,45 @@ sub _get_opts {
 sub option_params {
     return {
         'debug|D' => 0,
-        'file|f=s' => undef,
         'forks|f=i' => 10,
         'limit|l=i' => 0,
         'pagesize|p=i' => 2,
     };
 }
 
-sub csv_file {shift->opts->{'file'}}
 sub debug {shift->opts->{'debug'}}
 sub forks {shift->opts->{'forks'}}
 sub limit {shift->opts->{'limit'}}
 
-sub csv_read {
+sub db {
     my $self = shift;
-    my $header = undef;
-    my @lines = ();
-    open my $fh, '<', $self->csv_file or die "Couldn't open csv file!: $!\n";
-    while (my $line = <$fh>) {
-        chomp $line;
-        if (! defined $header) {
-            $header = $line;
-            next;
-        }
-        push @lines, $line;
-    }
-    close $fh;
-    return @lines;
 }
 
 # required by Batcher
 sub page_count {
     my $self = shift;
-    my @lines = $self->csv_read;
-    my $page_count = ceil(scalar @lines / $self->page_size);
-    return $page_count;
+    # TODO: return number of pages in total result set
+    if (!defined $count) {
+        # $count = SELECT COUNT(*) FROM table
+    }
+    # return ceil()
 }
 
 # required by Batcher
 sub page_next {
     my ($self, $next_idx) = @_;
-    my @lines = $self->csv_read;
-    my $page_size = $self->page_size;
-    my $page = [splice @lines, $next_idx * $self->page_size, $page_size];
-    return $page;
+    # TODO: return the next page of results
 }
 
 # required by Batcher
-sub page_size {shift->opts->{'pagesize'}}
+sub page_size {
+    # TODO: return the number of results in a page
+}
 
 # required by Batcher
 sub process_result {
     my ($self, $result) = @_;
-    print "($$) result: $result\n";
-    # Do something with the result ...
+    # TODO: something with the result ...
 }
 
 __PACKAGE__->new->run;

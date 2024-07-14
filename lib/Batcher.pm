@@ -15,13 +15,14 @@ sub new {
 }
 
 sub debug { 0 }
-sub fork_count { 4 }
+sub forks { 4 }
+sub logs  { 1 }
 
 sub _fork {
     my ($self, $pages) = @_;
     for my $page (@{$pages}) {
         my $next_page = $self->page_next($page);
-        die "Return value of page_next($page) must be an array ref!" unless ref $next_page eq 'ARRAY';
+        die "Return value of page_next() must be an array ref!" unless ref $next_page eq 'ARRAY';
         for my $result (@{$next_page}) {
             $self->process_result($result);
         }
@@ -30,9 +31,8 @@ sub _fork {
 
 sub log {
     my ($self, $msg) = @_;
-    say $msg if $self->log_enabled;
+    say $msg if $self->logs;
 }
-sub log_enabled {1}
 
 sub _not_implemented_err {
     my ($self, $sub) = @_;
@@ -48,7 +48,7 @@ sub process_result {_not_implemented_err}
 sub run {
     my $self  = shift;
     my $pages = $self->page_count;
-    my $forks = $self->fork_count;
+    my $forks = $self->forks;
     my @pages = (0 .. $pages - 1);
     my $size  = $self->page_size;
     my $pages_per_fork = ceil($pages / $forks);
