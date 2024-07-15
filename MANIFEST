@@ -1,0 +1,12 @@
+CHANGES.md
+lib/Batcher.pm
+LICENSE
+Makefile.PL
+MANIFEST
+MYMETA.json
+MYMETA.yml
+README.md
+t/batcher.pm.t
+examples/base.pl
+examples/csv.pl
+examples/dbi.pl

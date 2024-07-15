@@ -1,16 +1,16 @@
 # Batcher
 
-Batcher is a base class that abstracts away the code needed to divvy up a dataset into groupings of page numbers that then get handed off to forked child processes for for parallel processing.
+Batcher is a base class that abstracts away the code needed to divvy up a dataset into groupings of batch numbers that then get handed off to forked child processes for for parallel processing.
 
-Child processes fetch the data for the given page number through the `batch_next` hook that must be implemented.
+## Install
 
 ## Usage
 
-Create a new class that subclasses Batcher. The subclass needs to implement a few hooks Batcher depends on which provide the result page size, the total number of pages, the next page of results and a result processor:
+Create a new class that subclasses Batcher. The subclass needs to implement a few hooks Batcher `run` depends on. `run` depends on you overriding the hook to provide the result batch size, the total number of batchs, the next batch of results and a result processor which every result is passed to.
 
-- `batch_count()` - provides the total number of pages comprise the data set
-- `batch_next($next_idx)` - provides the next page of data given the next index
-- `batch_size()` - provides the number of items in a page
+- `batch_count()` - provides the total number of batchs
+- `batch_next($next_idx)` - provides the next batch of data given the next index
+- `batch_size()` - provides the number of items in a batch
 - `process_result($result)` - provides the next result to process
 
 ## Performance
@@ -25,12 +25,7 @@ Create a new class that subclasses Batcher. The subclass needs to implement a fe
 
 ### Publishing to CPAN
 
-Prepare distribution
 ```sh
 perl Makefile.PL && make dist && make clean
-```
-
-Upload
-```sh
 cpan-upload -u <PAUSEUSERNAME> Batcher-$VERSION.tar.gz
 ```

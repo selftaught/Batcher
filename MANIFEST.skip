@@ -1,0 +1,6 @@
+examples/*
+.git
+ignore/*
+Dockerfile
+.DS_Store
+Batcher*

@@ -12,8 +12,6 @@ use Batcher;
 
 
 subtest 'Defaults' => sub {
-    plan tests => 3;
-
     my $b = Batcher->new;
 
     is $b->debug, 0, 'debug default is 0';
@@ -22,12 +20,12 @@ subtest 'Defaults' => sub {
 };
 
 subtest 'Required hooks', sub {
-    plan tests => 2;
-
     my $b = Batcher->new;
 
     throws_ok { $b->batch_count } qr/NotImplementedError/;
     throws_ok { $b->batch_next } qr/NotImplementedError/;
+    throws_ok { $b->batch_size } qr/NotImplementedError/;
+    throws_ok { $b->process_result } qr/NotImplementedError/;
 };
 
 

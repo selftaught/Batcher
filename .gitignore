@@ -1,3 +1,7 @@
 *.swp
 *.swo
 examples/ignored
+Makefile
+Makefile.old
+MYMETA.json
+MYMETA.yml
