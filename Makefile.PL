@@ -13,6 +13,7 @@ WriteMakefile(
     PREREQ_PM    => {
         'Data::Dumper' => '2.154',
         'Test::Exception' => '0.43',
+        'Test::MockModule' => '0.178.0',
     },
     META_MERGE => {
         resources => {

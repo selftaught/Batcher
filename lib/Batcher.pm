@@ -6,6 +6,7 @@ use feature 'say';
 
 use Data::Dumper;
 use POSIX qw(ceil);
+use Time::HiRes qw(gettimeofday);
 
 our $VERSION = '0.0.1';
 
@@ -25,7 +26,7 @@ sub _process {
         my $next_batch = $self->batch_next($batch);
         die "Return value of batch_next() must be an array ref!" unless ref $next_batch eq 'ARRAY';
         for my $result (@{$next_batch}) {
-            $self->process_result($result);
+            $self->batch_result($result);
         }
     }
 }
@@ -44,10 +45,11 @@ sub _not_implemented_err {
 sub batch_count {_not_implemented_err}
 sub batch_next {_not_implemented_err}
 sub batch_size {_not_implemented_err}
-sub process_result {_not_implemented_err}
+sub batch_result {_not_implemented_err}
 
 sub run {
-    my $self  = shift;
+    my $self = shift;
+    my $t0 = gettimeofday;
     my $batches = $self->batch_count;
     my $forks = $self->forks;
     my @batches = (0 .. $batches - 1);
@@ -82,6 +84,9 @@ sub run {
         my $child = waitpid $pid, 0;
         $self->log("$child completed (code: $?)");
     }
+    my $t1 = gettimeofday;
+    my $elapsed = $t1 - $t0;
+    say "elapsed: $elapsed";
 }
 
 

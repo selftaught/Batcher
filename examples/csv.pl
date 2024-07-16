@@ -89,7 +89,7 @@ sub batch_next {
 sub batch_size {shift->opts->{'batchsize'}}
 
 # required by Batcher
-sub process_result {
+sub batch_result {
     my ($self, $result) = @_;
     print "($$) result: $result\n";
     # Do something with the result ...

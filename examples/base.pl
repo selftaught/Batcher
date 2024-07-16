@@ -69,7 +69,7 @@ sub batch_size {
 }
 
 # required by Batcher
-sub process_result {
+sub batch_result {
     my ($self, $result) = @_;
     # TODO: something with the result ...
 }

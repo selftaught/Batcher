@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use feature 'say';
 
+use Data::Dumper;
+use Test::MockModule;
 use Test::More;
 use Test::Exception;
 use FindBin qw($Bin);
@@ -19,14 +21,23 @@ subtest 'Defaults' => sub {
     is $b->logs, 1, 'logs default is 1';
 };
 
-subtest 'Required hooks', sub {
+subtest 'Required hooks' => sub {
     my $b = Batcher->new;
 
     throws_ok { $b->batch_count } qr/NotImplementedError/;
     throws_ok { $b->batch_next } qr/NotImplementedError/;
     throws_ok { $b->batch_size } qr/NotImplementedError/;
-    throws_ok { $b->process_result } qr/NotImplementedError/;
+    throws_ok { $b->batch_result } qr/NotImplementedError/;
 };
+
+# subtest 'Performance' => sub {
+#     my $b = Batcher->new;
+#     is 1, 1;
+#     my $batch_count = 100;
+#     my $batch_next = 'https://dillan.io';
+
+#     $b->run;
+# };
 
 
 done_testing();
