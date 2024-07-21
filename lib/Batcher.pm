@@ -18,7 +18,7 @@ sub new {
 
 sub debug { 0 }
 sub forks { 4 }
-sub logs  { 1 }
+sub logging { 1 }
 
 sub _process {
     my ($self, $batches) = @_;
@@ -33,7 +33,7 @@ sub _process {
 
 sub log {
     my ($self, $msg) = @_;
-    say $msg if $self->logs;
+    say $msg if $self->logging;
 }
 
 sub _not_implemented_err {
@@ -84,9 +84,8 @@ sub run {
         my $child = waitpid $pid, 0;
         $self->log("$child completed (code: $?)");
     }
-    my $t1 = gettimeofday;
-    my $elapsed = $t1 - $t0;
-    say "elapsed: $elapsed";
+    my $elapsed = gettimeofday - $t0;
+    $self->log("elapsed: $elapsed");
 }
 
 
