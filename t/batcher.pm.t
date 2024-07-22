@@ -17,7 +17,6 @@ use Batcher;
 
 
 
-
 subtest 'Defaults' => sub {
     my $b = Batcher->new;
 
@@ -70,7 +69,6 @@ subtest 'Required hooks' => sub {
 #             say "$io_micro_secs,$forks,$batch_count,$batch_size,$elapsed";
 #         }
 #     }
-
 # };
 
 

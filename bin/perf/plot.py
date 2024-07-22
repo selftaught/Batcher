@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 import matplotlib.pyplot as plt
 import argparse as ap
 import json
@@ -34,11 +33,10 @@ def plot(csv_file: str):
             plt.plot(data['x'], data['y'], label=f'{fork_cnt} procs', marker='.')
 
         leg = plt.legend(bbox_to_anchor=(1.1, 1), loc = 'upper right', borderaxespad=0)
-
         plt.draw()
         plt.grid(True)
         plt.xlabel('Time')
-        plt.ylabel('Time elapsed')
+        plt.ylabel('Time elapsed (milliseconds)')
         plt.show()
 
 
