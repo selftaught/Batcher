@@ -1,6 +1,6 @@
 # Batcher
 
-Batcher is a base class that abstracts away the code needed to divvy up a dataset into groupings of batch numbers that then get handed off to forked child processes for parallel processing.
+Batcher is a base class that distributes dynamically sized batches of input data to forked child processes for parallel processing.
 
 ## Install
 
@@ -16,12 +16,14 @@ Batcher is a base class that abstracts away the code needed to divvy up a datase
 
 ## Usage
 
-Create a new Batcher subclass and implement a few hooks that `Batcher::run` depends on. There's a hook for getting the batch size, the total number of batchs, the next batch of results in a run and a result processor which every result is passed to.
+ Using Batcher is simple. Inherit Batcher in a subclass and then implement a few hooks that `Batcher::run` depends on.
 
 - `batch_count()` - provides the total number of batchs
 - `batch_next($next_idx)` - provides the next batch of data given the next index
 - `batch_size()` - provides the number of items in a batch
 - `batch_result($result)` - provides the next result to process
+
+Browse [examples](./examples) for implementation examples.
 
 ## Performance
 
