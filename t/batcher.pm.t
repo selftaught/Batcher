@@ -34,42 +34,53 @@ subtest 'Required hooks' => sub {
     throws_ok { $b->batch_result } qr/NotImplementedError/;
 };
 
-# subtest 'Performance' => sub {
-#     is 1, 1;
-#     my $mock = Test::MockModule->new('Test::Batcher');
-#     my $io_micro_secs = 1000 * 5; # 50ms
-#     $mock->mock('batch_result', sub {
-#         my ($self, $result) = @_;
-#         # say $result;
-#         usleep $io_micro_secs;
-#         #sleep 1;
-#     });
-#     $mock->mock('logging', sub {0});
+subtest 'Performance' => sub {
+    my $mock = Test::MockModule->new('Test::Batcher');
+    my $io_micro_secs = 1000 * 1; # 10ms
+    my $io_delay_ms = $io_micro_secs / 100;
+    my $microsecs_to_sec = 1_000_000;
+    my $io_delay_sec = 1;
 
-#     my $fork_max = 15;
-#     say "io_micro_secs_delay,forks,batch_count,batch_size,elapsed";
-#     for (my $i = 1; $i <= $fork_max; $i++) {
-#         for (my $j = 0; $j < 10; $j++) {
-#             my $batch_count = 30;
-#             my $batch_next = [('https://dillan.io') x 10];
-#             my $batch_size = 2;
-#             my $forks = $i;
-#             my $batcher = Test::Batcher->new({
-#                 batch_count => $batch_count,
-#                 batch_next => $batch_next,
-#                 batch_size => $batch_size,
-#                 #_debug => 1,
-#                 forks => $forks,
-#             });
-#             my $start = gettimeofday;
-#             $batcher->run;
-#             my $stop = gettimeofday;
-#             my $elapsed = $stop - $start;
-#             #print Dumper $elapsed;
-#             say "$io_micro_secs,$forks,$batch_count,$batch_size,$elapsed";
-#         }
-#     }
-# };
+    $mock->mock('batch_result', sub { sleep $io_delay_sec; }); #usleep $io_micro_secs });
+    $mock->mock('logging', sub {0});
+
+    # case 1
+    my $args = {
+        #_debug => 1,
+        batch_count => 1,
+        batch_next => [('https://dillan.io')],
+        batch_size => 1,
+        forks => 1,
+    };
+
+    my $test_msg = sub {
+        my ($args, $delay, $elapsed) = @_;
+        my $task_cnt = $args->{'batch_count'} * $args->{'batch_size'};
+        return sprintf "%d (%d sec delay) tasks in %d forks took %.2f seconds", $task_cnt, $delay, $args->{'forks'}, $elapsed;
+    };
+
+    # CASE 1
+    my $margin = .1;
+    my $test_batcher = Test::Batcher->new($args);
+    my $start = gettimeofday;
+    $test_batcher->run;
+    my $elapsed = gettimeofday - $start;
+    my $expected_min = 1;
+    my $expected_max = $expected_min + $margin;
+    #diag "1 task, 1 fork, 1 sec delay - elapsed: $elapsed";
+    ok $elapsed >= $expected_min && $elapsed <= $expected_max, $test_msg->($args, $io_delay_sec, $elapsed);
+
+    # CASE 2
+    $args->{'batch_count'} = 2;
+    $args->{'batch_size'} = 1;
+    $args->{'forks'} = 2;
+    $test_batcher = Test::Batcher->new($args);
+    $start = gettimeofday;
+    $test_batcher->run;
+    $elapsed = gettimeofday - $start;
+    ok $elapsed >= $expected_min && $elapsed <= $expected_max, $test_msg->($args, $io_delay_sec, $elapsed);
+    #diag "2 task, 2 fork, 1 sec delay - elapsed: $elapsed";
+};
 
 
 done_testing();
